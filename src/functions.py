@@ -23,7 +23,7 @@ def text_node_to_html_node(text_node: TextNode) -> LeafNode:
 
 def split_nodes_delimiter(old_nodes: list[TextNode], delimiter: str, text_type: TextType) -> list[TextNode]:
     valid_delimiters: list[str] = ['**', '_', '`']
-    if delimiter not in valid_delimiters:
+    if delimiter not in valid_delimiters: # does this catch *?
         raise ValueError(f'Delimiter must be: {valid_delimiters}.')
     new_nodes: list[TextNode] = []
 
@@ -60,3 +60,49 @@ def extract_markdown_images(text: str) -> list[tuple]:
 def extract_markdown_links(text: str) -> list[tuple]:
     links: list[tuple] = re.findall(r'(?<!!)\[([^\[\]]*)\]\(([^\(\)]*)\)', text)
     return links
+
+def split_nodes_image(old_nodes: list[TextNode]) -> list[TextNode]:
+    new_nodes: list[TextNode] = []
+    for node in old_nodes:
+        images: list[tuple] = extract_markdown_images(node.text)
+        if not images:
+            new_nodes.append(node)
+            continue
+        text: str = node.text
+        for img in images:
+            alt: str = img[0]
+            url: str = img[1]
+            parts: list[str] = text.split(sep=f'![{alt}]({url})')
+            if not parts[0]:
+                new_nodes.append(TextNode(text=alt, text_type=TextType.IMAGE, url=url))
+                text: str = parts[1]
+            else:
+                new_nodes.append(TextNode(text=parts[0], text_type=TextType.TEXT))
+                new_nodes.append(TextNode(text=alt, text_type=TextType.IMAGE, url=url))
+                text: str = parts[1]
+        if text:
+            new_nodes.append(TextNode(text=text, text_type=TextType.TEXT))
+    return new_nodes
+
+def split_nodes_link(old_nodes: list[TextNode]) -> list[TextNode]:
+    new_nodes: list[TextNode] = []
+    for node in old_nodes:
+        links: list[tuple] = extract_markdown_links(node.text)
+        if not links:
+            new_nodes.append(node)
+            continue
+        text: str = node.text
+        for link in links:
+            anchor: str = link[0]
+            url: str = link[1]
+            parts: list[str] = text.split(sep=f'[{anchor}]({url})')
+            if not parts[0]:
+                new_nodes.append(TextNode(text=anchor, text_type=TextType.LINK, url=url))
+                text: str = parts[1]
+            else:
+                new_nodes.append(TextNode(text=parts[0], text_type=TextType.TEXT))
+                new_nodes.append(TextNode(text=anchor, text_type=TextType.LINK, url=url))
+                text: str = parts[1]
+        if text:
+            new_nodes.append(TextNode(text=text, text_type=TextType.TEXT))
+    return new_nodes

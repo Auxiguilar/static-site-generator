@@ -1,6 +1,6 @@
-from textnode import TextType, TextNode
-from htmlnode import HTMLNode, LeafNode, ParentNode
-from functions import *
+from src.textnode import TextType, TextNode
+from src.htmlnode import HTMLNode, LeafNode, ParentNode
+from src.functions import *
 
 
 def main():

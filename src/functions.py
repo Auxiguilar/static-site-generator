@@ -1,5 +1,7 @@
-from textnode import TextType, TextNode
-from htmlnode import HTMLNode, LeafNode, ParentNode
+import re
+
+from src.textnode import TextType, TextNode
+from src.htmlnode import HTMLNode, LeafNode, ParentNode
 
 
 def text_node_to_html_node(text_node: TextNode) -> LeafNode:
@@ -50,3 +52,11 @@ def split_nodes_delimiter(old_nodes: list[TextNode], delimiter: str, text_type: 
                 nodes.append(TextNode(text=part, text_type=text_type))
         new_nodes.extend(nodes)
     return new_nodes
+
+def extract_markdown_images(text: str) -> list[tuple]:
+    images: list[tuple] = re.findall(r'!\[([^\[\]]*)\]\(([^\(\)]*)\)', text)
+    return images
+
+def extract_markdown_links(text: str) -> list[tuple]:
+    links: list[tuple] = re.findall(r'(?<!!)\[([^\[\]]*)\]\(([^\(\)]*)\)', text)
+    return links

@@ -110,18 +110,11 @@ def split_nodes_link(old_nodes: list[TextNode]) -> list[TextNode]:
     return new_nodes
 
 def text_to_textnodes(text: str) -> list[TextNode]:
-    # should return new list with textnodes, images separated, and in order
     find_images: list[TextNode] = split_nodes_image([TextNode(text, TextType.TEXT)])
-
-    # same, but for links
     find_links: list[TextNode] = split_nodes_link(find_images)
-
-    # then format appropriately with delimiters
     format_bold: list[TextNode] = split_nodes_delimiter(find_links, '**', TextType.BOLD)
     format_italics: list[TextNode] = split_nodes_delimiter(format_bold, '_', TextType.ITALIC)
     format_code: list[TextNode] = split_nodes_delimiter(format_italics, '`', TextType.CODE)
-
-    # hopefully nothing gets shuffled around...
     return format_code
 
 def markdown_to_blocks(markdown: str) -> list[str]:
@@ -158,3 +151,34 @@ def block_to_blocktype(block: str) -> BlockType:
     if len(parts) == olist_count - 1:
         return BlockType.ORDERED_LIST
     return BlockType.PARAGRAPH
+
+
+# BUILD EVERYTHING!
+# or: make a div
+def markdown_to_html_node(markdown: str) -> ParentNode:
+    text_blocks: list[str] = markdown_to_blocks(markdown=markdown)
+    children: list[LeafNode] = []
+
+    for block in text_blocks:
+        tag: str = match_block_type(block_to_blocktype(block=block))
+        text_nodes: list[TextNode] = text_to_textnodes(block)
+
+    parent_node: ParentNode = ParentNode(tag='div', children=[])
+    return parent_node
+
+def match_block_type(block_type: BlockType) -> str:
+    match block_type:
+        case BlockType.PARAGRAPH:
+            return 'p'
+        case BlockType.CODE:
+            return 'pre'
+        case BlockType.HEADING:
+            return 'h' # we have a problem
+        case BlockType.QUOTE:
+            return 'blockquote'
+        case BlockType.UNORDERED_LIST:
+            return 'ul'
+        case BlockType.ORDERED_LIST:
+            return 'ol'
+        case _:
+            raise ValueError(f'{block_type} is not a BlockType')

@@ -173,7 +173,7 @@ def match_to_block_type(block: str) -> ParentNode:
             children: list[LeafNode] = make_code(block=block)
             return ParentNode(tag='pre', children=children) # type: ignore
         case BlockType.HEADING: # count #'s
-            num: int = len(block.split()[0])
+            num: int = len(block.strip().split()[0])
             children: list[LeafNode] = make_paragraph(block=block.lstrip('#').lstrip())
             return ParentNode(tag=f'h{num}', children=children) # type: ignore
         case BlockType.QUOTE: # remove >'s??
@@ -189,8 +189,9 @@ def match_to_block_type(block: str) -> ParentNode:
             raise Exception('???')
         
 def make_paragraph(block: str) -> list[LeafNode]:
+    new_block: str = block.replace('\n', ' ').strip()
     html_nodes: list[LeafNode] = []
-    text_nodes: list[TextNode] =  text_to_textnodes(text=block)
+    text_nodes: list[TextNode] =  text_to_textnodes(text=new_block)
     for node in text_nodes:
         html_nodes.append(text_node_to_html_node(node))
     return html_nodes

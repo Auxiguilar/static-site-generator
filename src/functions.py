@@ -1,6 +1,6 @@
 import re
 
-from src.textnode import TextType, TextNode
+from src.textnode import TextType, TextNode, BlockType
 from src.htmlnode import HTMLNode, LeafNode, ParentNode
 
 
@@ -132,3 +132,29 @@ def markdown_to_blocks(markdown: str) -> list[str]:
             continue
         blocks.append(part.strip())
     return blocks
+
+def block_to_blocktype(block: str) -> BlockType:
+    if block.startswith('#') and '# ' in block: # who cares how many there are?
+        return BlockType.HEADING
+    elif block.startswith('```') and block.endswith('```'):
+        return BlockType.CODE
+    parts: list[str] = block.split('\n')
+    quote_count: int = 0
+    for part in parts:
+        if part.startswith('>'):
+            quote_count += 1
+    if len(parts) == quote_count:
+        return BlockType.QUOTE
+    ulist_count: int = 0
+    for part in parts:
+        if part.startswith('- '):
+            ulist_count += 1
+    if len(parts) == ulist_count:
+        return BlockType.UNORDERED_LIST
+    olist_count: int = 1
+    for part in parts:
+        if part.startswith(f'{olist_count}. '):
+            olist_count += 1
+    if len(parts) == olist_count - 1:
+        return BlockType.ORDERED_LIST
+    return BlockType.PARAGRAPH

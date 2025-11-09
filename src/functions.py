@@ -154,31 +154,75 @@ def block_to_blocktype(block: str) -> BlockType:
 
 
 # BUILD EVERYTHING!
-# or: make a div
+# or: make a div, but harder
 def markdown_to_html_node(markdown: str) -> ParentNode:
     text_blocks: list[str] = markdown_to_blocks(markdown=markdown)
-    children: list[LeafNode] = []
-
+    children: list[ParentNode] = []
     for block in text_blocks:
-        tag: str = match_block_type(block_to_blocktype(block=block))
-        text_nodes: list[TextNode] = text_to_textnodes(block)
-
-    parent_node: ParentNode = ParentNode(tag='div', children=[])
+        children.append(match_to_block_type(block=block))
+    parent_node: ParentNode = ParentNode(tag='div', children=children) # type: ignore
     return parent_node
 
-def match_block_type(block_type: BlockType) -> str:
+def match_to_block_type(block: str) -> ParentNode:
+    block_type: BlockType = block_to_blocktype(block=block)
     match block_type:
         case BlockType.PARAGRAPH:
-            return 'p'
+            children: list[LeafNode] = make_paragraph(block=block)
+            return ParentNode(tag='p', children=children) # type: ignore
         case BlockType.CODE:
-            return 'pre'
-        case BlockType.HEADING:
-            return 'h' # we have a problem
-        case BlockType.QUOTE:
-            return 'blockquote'
-        case BlockType.UNORDERED_LIST:
-            return 'ul'
-        case BlockType.ORDERED_LIST:
-            return 'ol'
+            children: list[LeafNode] = make_code(block=block)
+            return ParentNode(tag='pre', children=children) # type: ignore
+        case BlockType.HEADING: # count #'s
+            num: int = len(block.split()[0])
+            children: list[LeafNode] = make_paragraph(block=block.lstrip('#').lstrip())
+            return ParentNode(tag=f'h{num}', children=children) # type: ignore
+        case BlockType.QUOTE: # remove >'s??
+            children: list[LeafNode] = make_quote(block=block)
+            return ParentNode(tag='quoteblock', children=children) #type: ignore
+        case BlockType.UNORDERED_LIST: # remove -'s
+            child: list[ParentNode] = make_unordered_list(block=block)
+            return ParentNode(tag='ul', children=child) # type: ignore
+        case BlockType.ORDERED_LIST: # remove #.'s
+            child: list[ParentNode] = make_unordered_list(block=block)
+            return ParentNode(tag='ol', children=child) # type: ignore
         case _:
-            raise ValueError(f'{block_type} is not a BlockType')
+            raise Exception('???')
+        
+def make_paragraph(block: str) -> list[LeafNode]:
+    html_nodes: list[LeafNode] = []
+    text_nodes: list[TextNode] =  text_to_textnodes(text=block)
+    for node in text_nodes:
+        html_nodes.append(text_node_to_html_node(node))
+    return html_nodes
+
+def make_code(block: str) -> list[LeafNode]:
+    html_nodes: list[LeafNode] = []
+    text: str = block.lstrip('```').lstrip('\n').rstrip('```')
+    node: TextNode = TextNode(text=text, text_type=TextType.CODE)
+    html_nodes.append(text_node_to_html_node(node))
+    return html_nodes
+
+def make_quote(block: str) -> list[LeafNode]:
+    a: list[LeafNode] = []
+    parts: list[str] = block.split('\n')
+    new_parts: list[str] = []
+    for part in parts:
+        new_parts.append(part.lstrip('>'))
+    new_block: str = '\n'.join(new_parts)
+    return make_paragraph(new_block)
+
+def make_unordered_list(block: str) -> list[ParentNode]:
+    parent_node: list[ParentNode] = []
+    parts: list[str] = block.split('\n')
+    for part in parts:
+        parent_node.append(ParentNode(tag='li', children=make_paragraph(part.lstrip('- ')))) # type: ignore
+    return parent_node
+
+def make_ordered_list(block: str) -> list[ParentNode]:
+    parent_node: list[ParentNode] = []
+    parts: list[str] = block.split('\n')
+    num: int = 0
+    for part in parts:
+        num += 1
+        parent_node.append(ParentNode(tag='li', children=make_paragraph(part.lstrip(f'{num}. ')))) # type: ignore
+    return parent_node

@@ -23,7 +23,7 @@ def text_node_to_html_node(text_node: TextNode) -> LeafNode:
 
 def split_nodes_delimiter(old_nodes: list[TextNode], delimiter: str, text_type: TextType) -> list[TextNode]:
     valid_delimiters: list[str] = ['**', '_', '`']
-    if delimiter not in valid_delimiters: # does this catch *?
+    if delimiter not in valid_delimiters:
         raise ValueError(f'Delimiter must be: {valid_delimiters}.')
     new_nodes: list[TextNode] = []
 
@@ -42,6 +42,8 @@ def split_nodes_delimiter(old_nodes: list[TextNode], delimiter: str, text_type: 
         nodes: list[TextNode] = []
         parts: list[str] = node.text.split(sep=delimiter)
         for part in parts:
+            if not part: # woops!
+                continue
             if (part.startswith(' ')
                 or part.endswith(' ')
                 or valid_delimiters[0] in part
@@ -106,3 +108,18 @@ def split_nodes_link(old_nodes: list[TextNode]) -> list[TextNode]:
         if text:
             new_nodes.append(TextNode(text=text, text_type=TextType.TEXT))
     return new_nodes
+
+def text_to_textnodes(text: str) -> list[TextNode]:
+    # should return new list with textnodes, images separated, and in order
+    find_images: list[TextNode] = split_nodes_image([TextNode(text, TextType.TEXT)])
+
+    # same, but for links
+    find_links: list[TextNode] = split_nodes_link(find_images)
+
+    # then format appropriately with delimiters
+    format_bold: list[TextNode] = split_nodes_delimiter(find_links, '**', TextType.BOLD)
+    format_italics: list[TextNode] = split_nodes_delimiter(format_bold, '_', TextType.ITALIC)
+    format_code: list[TextNode] = split_nodes_delimiter(format_italics, '`', TextType.CODE)
+
+    # hopefully nothing gets shuffled around...
+    return format_code

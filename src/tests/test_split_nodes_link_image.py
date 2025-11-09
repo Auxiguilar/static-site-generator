@@ -24,6 +24,20 @@ class TestSplitLinkImage(unittest.TestCase):
         )
         self.assertEqual(4, len(new_nodes))
 
+    def test_only_image(self):
+        node = [
+            TextNode('![image1](images/image1)', TextType.TEXT),
+            TextNode('![image2](images/image2)', TextType.TEXT)
+        ]
+        new_nodes = split_nodes_image(node)
+        self.assertListEqual(
+            [
+                TextNode('image1', TextType.IMAGE, 'images/image1'),
+                TextNode('image2', TextType.IMAGE, 'images/image2')
+            ],
+            new_nodes
+        )
+
     def test_split_links(self):
         node = TextNode(
             'This is text with a link [to boot dev](https://www.boot.dev) and [to youtube](https://www.youtube.com/@bootdotdev)',
@@ -41,4 +55,18 @@ class TestSplitLinkImage(unittest.TestCase):
                 ),
             ],
             new_nodes,
+        )
+
+    def test_only_links(self):
+        node = [
+            TextNode('[link1](links/link1)', TextType.TEXT),
+            TextNode('[link2](links/link2)', TextType.TEXT)
+        ]
+        new_nodes = split_nodes_link(node)
+        self.assertListEqual(
+            [
+                TextNode('link1', TextType.LINK, 'links/link1'),
+                TextNode('link2', TextType.LINK, 'links/link2')
+            ],
+            new_nodes
         )

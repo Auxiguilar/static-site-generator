@@ -123,3 +123,12 @@ def text_to_textnodes(text: str) -> list[TextNode]:
 
     # hopefully nothing gets shuffled around...
     return format_code
+
+def markdown_to_blocks(markdown: str) -> list[str]:
+    blocks: list[str] = []
+    parts: list[str] = markdown.split('\n\n')
+    for part in parts:
+        if not part or part == '\n':
+            continue
+        blocks.append(part.strip())
+    return blocks

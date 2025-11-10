@@ -1,7 +1,7 @@
 import re
 
-from src.textnode import TextType, TextNode, BlockType
-from src.htmlnode import HTMLNode, LeafNode, ParentNode
+from textnode import TextType, TextNode, BlockType
+from htmlnode import HTMLNode, LeafNode, ParentNode
 
 
 def text_node_to_html_node(text_node: TextNode) -> LeafNode:
@@ -48,7 +48,9 @@ def split_nodes_delimiter(old_nodes: list[TextNode], delimiter: str, text_type: 
                 or part.endswith(' ')
                 or valid_delimiters[0] in part
                 or valid_delimiters[1] in part
-                or valid_delimiters[2] in part):
+                or valid_delimiters[2] in part
+                or node.text.startswith(part)
+                or node.text.endswith(part)):
                 nodes.append(TextNode(text=part, text_type=TextType.TEXT))
             else:
                 nodes.append(TextNode(text=part, text_type=text_type))
@@ -183,7 +185,7 @@ def match_to_block_type(block: str) -> ParentNode:
             child: list[ParentNode] = make_unordered_list(block=block)
             return ParentNode(tag='ul', children=child) # type: ignore
         case BlockType.ORDERED_LIST: # remove #.'s
-            child: list[ParentNode] = make_unordered_list(block=block)
+            child: list[ParentNode] = make_ordered_list(block=block)
             return ParentNode(tag='ol', children=child) # type: ignore
         case _:
             raise Exception('???')
@@ -225,5 +227,6 @@ def make_ordered_list(block: str) -> list[ParentNode]:
     num: int = 0
     for part in parts:
         num += 1
-        parent_node.append(ParentNode(tag='li', children=make_paragraph(part.lstrip(f'{num}. ')))) # type: ignore
+        stripped_part: str = part.strip(f'{num}. ')
+        parent_node.append(ParentNode(tag='li', children=make_paragraph(stripped_part))) # type: ignore
     return parent_node

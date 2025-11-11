@@ -35,3 +35,12 @@ the **same** even with inline stuff
             html,
             "<div><pre><code>This is text that _should_ remain\nthe **same** even with inline stuff\n</code></pre></div>",
         )
+
+    def test_multiple(self):
+        text = ("## header2\n\na paragraph of text; **look!**\nand _here!_\n\n```\n# and my code is **broken**!\nprint('help'!)\n```\n\n1. my imports are messed up for some reason\n2. I don't know _why_!\n\n- another\n- list")
+        node = markdown_to_html_node(text)
+        html = node.to_html()
+        self.assertEqual(
+            html,
+            "<div><h2>header2</h2><p>a paragraph of text; <b>look!</b> and <i>here!</i></p><pre><code># and my code is **broken**!\nprint('help'!)\n</code></pre><ol><li>my imports are messed up for some reason</li><li>I don't know <i>why</i>!</li></ol><ul><li>another</li><li>list</li></ul></div>",
+        )

@@ -1,7 +1,7 @@
 import re
 
-from .textnode import TextType, TextNode, BlockType
-from .htmlnode import HTMLNode, LeafNode, ParentNode
+from textnode import TextType, TextNode, BlockType
+from htmlnode import HTMLNode, LeafNode, ParentNode
 
 
 def text_node_to_html_node(text_node: TextNode) -> LeafNode:
@@ -180,7 +180,7 @@ def match_to_block_type(block: str) -> ParentNode:
             return ParentNode(tag=f'h{num}', children=children) # type: ignore
         case BlockType.QUOTE: # remove >'s??
             children: list[LeafNode] = make_quote(block=block)
-            return ParentNode(tag='quoteblock', children=children) #type: ignore
+            return ParentNode(tag='blockquote', children=children) #type: ignore
         case BlockType.UNORDERED_LIST: # remove -'s
             child: list[ParentNode] = make_unordered_list(block=block)
             return ParentNode(tag='ul', children=child) # type: ignore
@@ -230,3 +230,28 @@ def make_ordered_list(block: str) -> list[ParentNode]:
         stripped_part: str = part.strip(f'{num}. ')
         parent_node.append(ParentNode(tag='li', children=make_paragraph(stripped_part))) # type: ignore
     return parent_node
+
+
+# generate page
+def extract_title(markdown: str) -> str:
+    title: str = markdown.strip().split('\n\n')[0]
+    if title.startswith('# ') == False:
+        raise Exception(f'Could not find h1-equivalent title in Markdown: {title}')
+    return title.lstrip('#').strip()
+
+def generate_page(from_path: str, template_path: str, dest_path: str):
+    print(f'Generating page from {from_path} to {dest_path} using {template_path}.')
+
+    with open(file=from_path, encoding='utf-8', mode='r') as md:
+        markdown = md.read()
+
+    with open(file=template_path, encoding='utf-8', mode='r') as tpl:
+        template = tpl.read()
+
+    html: str = markdown_to_html_node(markdown).to_html()
+    title: str = extract_title(markdown)
+
+    html_page: str = template.replace('{{ Title }}', title).replace('{{ Content }}', html)
+
+    with open(file=dest_path, encoding='utf-8', mode='w') as index:
+        index.write(html_page)

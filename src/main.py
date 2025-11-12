@@ -1,4 +1,5 @@
 import os, shutil
+from functions import generate_page
 
 
 def remove_public():
@@ -32,6 +33,7 @@ def copy_to_public(source='./content', destination='./public'):
 def main():
     remove_public()
     copy_to_public()
+    generate_page('./content/index.md', 'template.html', 'public/index.html')
 
 
 if __name__ == '__main__':

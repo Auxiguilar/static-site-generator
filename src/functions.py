@@ -240,19 +240,19 @@ def extract_title(markdown: str) -> str:
         raise Exception(f'Could not find h1-equivalent title in Markdown: {title}')
     return title.lstrip('#').strip()
 
-def generate_page(from_path: str, template_path: str, dest_path: str):
+def generate_page(from_path: str, template_path: str, dest_path: str, basepath: str):
     print(f'Generating page from {from_path} to {dest_path} using {template_path}.')
 
     with open(file=from_path, encoding='utf-8', mode='r') as md:
         markdown = md.read()
 
-    with open(file=template_path, encoding='utf-8', mode='r') as tpl:
+    with open(file=basepath + template_path, encoding='utf-8', mode='r') as tpl:
         template = tpl.read()
 
     html: str = markdown_to_html_node(markdown).to_html()
     title: str = extract_title(markdown)
 
-    html_page: str = template.replace('{{ Title }}', title).replace('{{ Content }}', html)
+    html_page: str = template.replace('{{ Title }}', title).replace('{{ Content }}', html).replace('href="/', f'href="{basepath}').replace('src="/', f'src="{basepath}')
 
     with open(file=dest_path, encoding='utf-8', mode='w') as index:
         index.write(html_page)

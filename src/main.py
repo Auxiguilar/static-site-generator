@@ -1,4 +1,4 @@
-import os, shutil
+import os, shutil, sys
 from functions import generate_page
 
 
@@ -13,7 +13,7 @@ def remove_public():
 
 def copy_to_public(source='./content', destination='./public'):
     if not os.path.exists(destination):
-        os.mkdir('./public')
+        os.mkdir(destination)
     contents: list = os.listdir(source)
     print(f'CTP > Current dir contents: {contents}') # logging
     for content in contents:
@@ -29,30 +29,33 @@ def copy_to_public(source='./content', destination='./public'):
             print(f'CTP > Recursion to: {src}') # logging
             copy_to_public(src, dst)
 
-def generate_page_recursive(from_path: str, template_path: str, dest_path: str):
-    contents: list = os.listdir(from_path)
+def generate_page_recursive(from_path: str, template_path: str, dest_path: str, basepath: str):
+    contents: list = os.listdir(basepath + from_path)
     print(f'GPR > Current dir contents: {contents}') # logging
     for content in contents:
-        src: str = os.path.join(from_path, content)
-        dst: str = os.path.join(dest_path, content)
+        src: str = os.path.join(basepath + from_path, content)
+        dst: str = os.path.join(basepath + dest_path, content)
 
-        print(f'GPR > src: {src}\ndst: {dst}')
+        print(f'GPR >\nsrc: {src}\ndst: {dst}')
         if not os.path.isfile(src):
             print(f'GPR > Recursion to: {src}') # logging
-            generate_page_recursive(src, template_path, dst)
+            generate_page_recursive(src, template_path, dst, basepath)
         elif os.path.isfile(src) and src.endswith('.md'):
             html_dst: str = dst.replace('.md', '.html') 
-            print(f'GPR > Generating HTML page from {src} to {html_dst}:')
-            generate_page(src, template_path, html_dst)
+            print(f'GPR > Generating HTML page from {src} to {html_dst}:') # logging
+            generate_page(src, template_path, html_dst, basepath)
         else:
             continue
 
 
-def main():
+def main(basepath: str = './'):
     remove_public()
-    copy_to_public()
-    generate_page_recursive('./content', 'template.html', './public')
+    copy_to_public(source='content', destination='docs')
+    generate_page_recursive('content', 'template.html', 'docs', basepath)
 
 
 if __name__ == '__main__':
-    main()
+    if len(sys.argv) == 1:
+        main()
+    else:
+        main(sys.argv[1])

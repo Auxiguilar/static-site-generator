@@ -205,6 +205,7 @@ def make_code(block: str) -> list[LeafNode]:
     html_nodes.append(text_node_to_html_node(node))
     return html_nodes
 
+# bothersome function
 def make_quote(block: str) -> list[LeafNode]:
     a: list[LeafNode] = []
     parts: list[str] = block.split('\n')

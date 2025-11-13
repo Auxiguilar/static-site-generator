@@ -4,36 +4,54 @@ from functions import generate_page
 
 def remove_public():
     path: str = './public'
-    print(f'/public exists: {os.path.exists(path)}') # logging
+    print(f'RP > /public exists: {os.path.exists(path)}') # logging
     if os.path.exists(path):
-        print(f'Removing everything at path: {path}') # logging
+        print(f'RP > Removing everything at path: {path}') # logging
         shutil.rmtree(path)
     else:
-        print('No "public" directory.') # logging
+        print('RP > No "public" directory.') # logging
 
 def copy_to_public(source='./content', destination='./public'):
     if not os.path.exists(destination):
         os.mkdir('./public')
     contents: list = os.listdir(source)
-    print(f'Current dir contents: {contents}') # logging
+    print(f'CTP > Current dir contents: {contents}') # logging
     for content in contents:
         src: str = os.path.join(source, content)
         dst: str = os.path.join(destination, content)
 
-        print(f'src: {src}\ndst: {dst}')
+        print(f'CTP > src: {src}\ndst: {dst}')
         if os.path.isfile(src):
-            print(f'Copying to path: {dst}') # logging
+            print(f'CTP > Copying to path: {dst}') # logging
             shutil.copy(src, dst)
         else:
             os.mkdir(dst)
-            print(f'Recursion to: {src}') # logging
+            print(f'CTP > Recursion to: {src}') # logging
             copy_to_public(src, dst)
+
+def generate_page_recursive(from_path: str, template_path: str, dest_path: str):
+    contents: list = os.listdir(from_path)
+    print(f'GPR > Current dir contents: {contents}') # logging
+    for content in contents:
+        src: str = os.path.join(from_path, content)
+        dst: str = os.path.join(dest_path, content)
+
+        print(f'GPR > src: {src}\ndst: {dst}')
+        if not os.path.isfile(src):
+            print(f'GPR > Recursion to: {src}') # logging
+            generate_page_recursive(src, template_path, dst)
+        elif os.path.isfile(src) and src.endswith('.md'):
+            html_dst: str = dst.replace('.md', '.html') 
+            print(f'GPR > Generating HTML page from {src} to {html_dst}:')
+            generate_page(src, template_path, html_dst)
+        else:
+            continue
 
 
 def main():
     remove_public()
     copy_to_public()
-    generate_page('./content/index.md', 'template.html', 'public/index.html')
+    generate_page_recursive('./content', 'template.html', './public')
 
 
 if __name__ == '__main__':

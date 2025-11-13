@@ -3,7 +3,7 @@ from functions import generate_page
 
 
 def remove_public():
-    path: str = './public'
+    path: str = './docs'
     print(f'RP > /public exists: {os.path.exists(path)}') # logging
     if os.path.exists(path):
         print(f'RP > Removing everything at path: {path}') # logging
@@ -30,11 +30,11 @@ def copy_to_public(source='./content', destination='./public'):
             copy_to_public(src, dst)
 
 def generate_page_recursive(from_path: str, template_path: str, dest_path: str, basepath: str):
-    contents: list = os.listdir(basepath + from_path)
+    contents: list = os.listdir(from_path)
     print(f'GPR > Current dir contents: {contents}') # logging
     for content in contents:
-        src: str = os.path.join(basepath + from_path, content)
-        dst: str = os.path.join(basepath + dest_path, content)
+        src: str = os.path.join(from_path, content)
+        dst: str = os.path.join(dest_path, content)
 
         print(f'GPR >\nsrc: {src}\ndst: {dst}')
         if not os.path.isfile(src):
